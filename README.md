@@ -8,7 +8,7 @@ PrivID is an open-source identity verification protocol that utilizes zero-knowl
 
 ## ✨ Key Features
 
-- **Zero-Knowledge Identity Verification via Holonym**: Leverages Holonym's decentralized identity protocol based on zero-knowledge proofs for privacy-preserving KYC and Sybil resistance. [Holonym GitHub Repository](https://github.com/holonym-foundation)
+- **Zero-Knowledge Identity Verification via Holonym**: Leverages Holonym's decentralized identity protocol based on zero-knowledge proofs for privacy-preserving KYC and Sybil resistance. [Holonym GitHub Repository]([https://github.com/holonym-foundation](https://github.com/holonym-foundation))
 
 - **Browser Extension for Bluesky**: Displays verified identity badges on Bluesky user profiles, enhancing trust within the decentralized social network.
 
@@ -24,7 +24,7 @@ PrivID is an open-source identity verification protocol that utilizes zero-knowl
 
 ## 🔗 Related Repositories & Dependencies
 
-- **Holonym Foundation**: [https://github.com/holonym-foundation](https://github.com/holonym-foundation)
+- **Holonym Foundation**: [Github](https://github.com/holonym-foundation)
   
   - *Holonym Relayer*: Facilitates the relay of zero-knowledge proofs between clients and the blockchain. [Repository](https://github.com/holonym-foundation/holonym-relayer)
 
@@ -38,7 +38,6 @@ PrivID is an open-source identity verification protocol that utilizes zero-knowl
 
 - **Bluesky Social App**: [https://github.com/bluesky-social/social-app](https://github.com/bluesky-social/social-app)
 
-- **Human.Tech**: [https://github.com/human-tech-org](https://github.com/human-tech-org)
 
 ---
 

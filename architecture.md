@@ -1,23 +1,32 @@
-# 🧠 PrivID Technical Architecture
+# 🧠 PrivID Technical Architecture (MVP)
 
 ## Overview
 
-PrivID consists of modular components:
+PrivID is a browser extension that enables privacy-preserving identity verification on Bluesky. It integrates with Holonym to fetch zero-knowledge credentials (e.g. proof of age), and optionally publishes proof metadata to the AT Protocol.
 
-- **Smart Contract**: Logs verifiers and project metadata
-- **Onboarding UI (Streamlit)**: Guides users to Holonym and links credentials
-- **Browser Extension**: Adds verification badge to Bluesky handles
-- **CLI Tool**: Power-user access to proof publishing and DID lookups
+### Core Components
 
-## Flow Diagram
+- **Browser Extension**: Detects Bluesky handles and displays verification badges
+- **Holonym Integration**: Fetches SBTs for ZK claims (e.g. "over 18", residency)
+- **AT Protocol Publishing**: Optionally writes `app.privid.verification` record with proof metadata
 
-1. User initiates onboarding
-2. Holonym issues ZK credential (SBT)
-3. Credential proof is hashed & optionally published to AT Protocol schema
-4. Browser extension reads DID + schema and renders badge
+## Data Flow
+
+1. User clicks “Verify with Holonym” in the extension
+2. Holonym issues a ZK credential (SBT)
+3. PrivID creates a proof hash and optionally publishes it via ATProto schema
+4. Extension reads verification record and renders badge on Bluesky
 
 ## Integration Points
 
-- [Holonym Relayer + Client SDK](https://github.com/holonym-foundation)
-- [AT Protocol Identity + Records](https://github.com/bluesky-social/atproto)
-- Bluesky UI layer for display
+- [Holonym SDK + Relayer](https://github.com/holonym-foundation)
+- [AT Protocol](https://github.com/bluesky-social/atproto)
+- [Bluesky Social App](https://github.com/bluesky-social/social-app)
+
+---
+
+## Future or Optional Components (not in MVP)
+
+- **Smart Contract (PrivIDDeployer.sol)**: Was exploratory, now archived
+- **Streamlit Onboarding UI**: May return as a visual credential assistant
+- **CLI Tooling**: For devs to publish or verify proofs manually

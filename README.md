@@ -60,6 +60,22 @@ PrivID uses zero-knowledge proofs to allow users to verify identity-linked claim
 
 ## 🛠️ Technical Implementation Plan
 
+## 🗂️ Repository Structure
+
+This monorepo now contains multiple components under the `apps/` directory:
+
+- `apps/extension/` – Browser extension codebase (built with Vite, Tailwind, TypeScript)
+- `apps/telegram-bot/` – Telegram bot for identity verification (Python-based, CLI-focused)
+
+See individual READMEs inside each folder for usage and setup.
+
+---
+
+## 📍 Project Roadmap
+
+For a full view of planned and completed features, visit:
+[ROADMAP.md](./ROADMAP.md)
+
 ### Holonym Integration (Planned)
 
 PrivID will use the [Holonym API and SDK](https://docs.holonym.id/for-developers/start-here) to support selective disclosure of identity attributes using zero-knowledge proofs.

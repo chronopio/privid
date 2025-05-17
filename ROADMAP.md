@@ -1,7 +1,22 @@
 # 🗺️ PrivID MVP Roadmap (Q2 2025)
 
-This roadmap reflects a fast-moving timeline (~2 months), with a focus on launching a minimal but functional prototype of PrivID in time for the next Gitcoin round.
+This roadmap outlines a fast-moving build scope focused on launching a functional prototype of PrivID by Q2 2025, in time for Gitcoin and pilot testing.
 
+---
+
+## ✅ Module Scaffold Status
+
+| Feature               | Scaffolded | Connected | Verified |
+|----------------------|------------|-----------|----------|
+| Browser extension     | ✅         | 🔄 (Mock) | ✗        |
+| Telegram bot          | ✅         | ✗         | ✗        |
+| Holonym mock          | ✅         | ✗         | ✗        |
+| Badge rendering       | ✅         | ✗         | ✗        |
+| ATProto publishing    | ✗         | ✗         | ✗        |
+
+> *This table shows the scaffold vs functional status of key MVP components.*
+
+---
 ---
 
 ## ✅ MVP Priorities

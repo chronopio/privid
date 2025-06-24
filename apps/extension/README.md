@@ -4,24 +4,49 @@
 
 ## Features
 
-- Basic browser extension scaffold (Manifest V3)
-- Popup interface with status and verification button
-- Future integration with Holonym mock API
-- Planned: Bluesky badge display, AT Protocol publishing, test mode, packaging
+-   Basic browser extension scaffold (Manifest V3)
+-   Popup interface with status and verification button
+-   Mock Holonym verification flow
+-   TypeScript support for safer development
+-   Uses [Bun](https://bun.sh) as the package manager and runtime
+-   Future: Bluesky badge display, AT Protocol publishing, test mode, packaging
 
-## Dev Setup
+## Development Setup
 
-1. Clone the repo
-2. Load `extension/` into Chrome or Firefox (unpacked extension)
-3. Develop in `extension/popup/` and `manifest.json`
+### 1. Prerequisites
 
-## Roadmap
+-   [Bun](https://bun.sh) installed (recommended: latest stable)
+-   [Node.js](https://nodejs.org/) (optional, for some tooling)
+-   Chrome or Firefox browser (for extension testing)
 
-- [ ] Holonym mock integration
-- [ ] AT Protocol publisher
-- [ ] Test mode toggle
-- [ ] Final packaging and deployment
+### 2. Install Dependencies
 
----
+```sh
+bun install
+```
 
-Built using Termux + GitHub CLI on Android.
+### 3. Build the Extension
+
+```sh
+bun run build
+```
+
+This will compile TypeScript and output the extension files to the appropriate directory.
+
+### 4. Load the Extension in Your Browser
+
+-   **Chrome:**
+    1. Go to `chrome://extensions/`
+    2. Enable "Developer mode"
+    3. Click "Load unpacked"
+    4. Select the `apps/extension` directory
+-   **Firefox:**
+    1. Go to `about:debugging#/runtime/this-firefox`
+    2. Click "Load Temporary Add-on"
+    3. Select the `manifest.json` file in `apps/extension`
+
+### 5. Development Workflow
+
+-   Edit source files in `apps/extension/popup/` and `apps/extension/mockHolonym.ts`
+-   Re-run `bun run build` after making changes, or use a watcher if configured
+-   Reload the extension in your browser to see updates

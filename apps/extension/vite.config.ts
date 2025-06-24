@@ -4,8 +4,6 @@ export default defineConfig({
     build: {
         rollupOptions: {
             input: {
-                background: 'background.ts',
-                content: 'content.ts',
                 popup: 'popup/popup.ts'
             },
             output: {

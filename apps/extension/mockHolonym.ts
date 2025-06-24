@@ -4,7 +4,14 @@ const badgeStrings = [
     'Authenticated by ZK Proof'
 ];
 
-export const getMockVerificationResult = () => {
+export interface MockVerificationResult {
+    verified: boolean;
+    timestamp: string;
+    proof: string;
+    badge: string;
+}
+
+export const getMockVerificationResult = (): MockVerificationResult => {
     const randomIndex = Math.floor(Math.random() * badgeStrings.length);
     const randomProofId = Math.random().toString(36).substring(2, 15);
 

@@ -1,20 +1,34 @@
-import { getMockVerificationResult } from '../mockHolonym.js';
-import { icons } from './utils/icons.js';
+import browser from 'webextension-polyfill';
+import { getMockVerificationResult } from '../mockHolonym';
+import { icons } from './utils/icons';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const statusTextEl = document.getElementById('status-text');
-    const statusIconEl = document.getElementById('status-icon');
-    const button = document.getElementById('verifyBtn');
+    const statusTextEl = document.getElementById(
+        'status-text'
+    ) as HTMLSpanElement;
+    const statusIconEl = document.getElementById(
+        'status-icon'
+    ) as HTMLSpanElement;
+    const button = document.getElementById('verifyBtn') as HTMLButtonElement;
+
+    type VerificationState = 'unverified' | 'verifying' | 'verified';
+    interface StatusConfig {
+        icon: string;
+        iconClass: string;
+        text: string;
+        btnText: string;
+        btnDisabled: boolean;
+    }
 
     /**
      * Updates the UI to reflect a specific state (unverified, verifying, verified).
      * @param {'unverified' | 'verifying' | 'verified'} state - The state to display.
      */
-    const setStatus = (state) => {
+    const setStatus = (state: VerificationState) => {
         statusTextEl.classList.remove('verified', 'unverified', 'verifying');
         statusIconEl.classList.remove('verified', 'unverified', 'verifying');
 
-        let statusConfig = {
+        let statusConfig: StatusConfig = {
             icon: icons.unverified,
             iconClass: 'unverified',
             text: 'Not Verified',
@@ -49,13 +63,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // On popup load, check storage for persisted verification state
-    chrome.storage.local.get(['verification'], (result) => {
-        if (result.verification && result.verification.verified) {
-            setStatus('verified');
-        } else {
-            setStatus('unverified');
-        }
-    });
+    browser.storage.local
+        .get(['verification'])
+        .then((result: { verification?: { verified: boolean } }) => {
+            if (result.verification && result.verification.verified) {
+                setStatus('verified');
+            } else {
+                setStatus('unverified');
+            }
+        });
 
     button.addEventListener('click', () => {
         setStatus('verifying');
@@ -64,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             const mockResult = getMockVerificationResult();
             // Store the mock result in browser storage to persist state
-            chrome.storage.local.set({ verification: mockResult }, () => {
+            browser.storage.local.set({ verification: mockResult }).then(() => {
                 console.log('Verification result stored:', mockResult);
                 setStatus('verified');
             });

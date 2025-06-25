@@ -78,6 +78,6 @@ To create a ZIP file of the extension for local install or distribution:
         3. Enable "Developer mode".
         4. Click "Load unpacked" and select the unzipped folder.
     - **Firefox:**
-        1. Go to `about:debugging`.
+        1. Go to `about:debugging#/runtime/this-firefox`.
         2. Click "Load Temporary Add-on".
         3. Select the privid-extension.zip file.

@@ -47,6 +47,37 @@ This will compile TypeScript and output the extension files to the appropriate d
 
 ### 5. Development Workflow
 
--   Edit source files in `apps/extension/popup/` and `apps/extension/mockHolonym.ts`
+-   Edit source files in `apps/extension/popup/`
 -   Re-run `bun run build` after making changes, or use a watcher if configured
 -   Reload the extension in your browser to see updates
+
+## Packaging for Local Testing & Distribution
+
+To create a ZIP file of the extension for local install or distribution:
+
+1. **Build and Package the Extension**
+
+    From the `apps/extension` directory, run:
+
+    ```sh
+    bun run package-extension
+    ```
+
+    This will:
+
+    - Build the extension (output to `dist/`)
+    - Copy only the necessary files to a temporary `build/` directory
+    - Create a ZIP file in `dist/` (e.g., `privid-extension.zip`)
+    - Clean up the temporary build directory
+
+2. **Install the Extension Locally**
+
+    - **Chrome/Edge/Brave:**
+        1. Unzip the ZIP file.
+        2. Go to `chrome://extensions/`.
+        3. Enable "Developer mode".
+        4. Click "Load unpacked" and select the unzipped folder.
+    - **Firefox:**
+        1. Go to `about:debugging`.
+        2. Click "Load Temporary Add-on".
+        3. Select the privid-extension.zip file.

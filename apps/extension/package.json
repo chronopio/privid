@@ -10,6 +10,9 @@
     "url": "git+https://github.com/elephant-dog-org/privid.git"
   },
   "keywords": ["browser-extension", "privacy", "identity", "zero-knowledge", "privid"],
+  "engines": {
+    "bun": ">=1.0.0"
+  },
   "dependencies": {
     "webextension-polyfill": "^0.12.0"
   },

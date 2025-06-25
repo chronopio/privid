@@ -3,6 +3,10 @@
     <head>
         <title>PrivID Popup</title>
         <link rel="stylesheet" href="popup.css" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
         <div class="container">
@@ -15,6 +19,11 @@
             </div>
 
             <button id="verifyBtn">Verify with Holonym</button>
+            <label class="toggle-container">
+                <span class="toggle-label">Mock Verification Mode</span>
+                <input type="checkbox" id="mockToggle" />
+                <span class="toggle-slider"></span>
+            </label>
         </div>
         <script src="../dist/popup.js" type="module"></script>
     </body>

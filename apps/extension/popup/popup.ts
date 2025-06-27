@@ -1,5 +1,8 @@
 import browser from 'webextension-polyfill';
-import { getMockVerificationResult } from '../mockHolonym';
+import {
+    getMockVerificationResult,
+    MockVerificationResult
+} from './mocks/mockHolonym';
 import { icons } from './utils/icons';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,6 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'status-icon'
     ) as HTMLSpanElement;
     const button = document.getElementById('verifyBtn') as HTMLButtonElement;
+    const mockToggle = document.getElementById(
+        'mockToggle'
+    ) as HTMLInputElement;
 
     type VerificationState = 'unverified' | 'verifying' | 'verified';
     interface StatusConfig {
@@ -62,6 +68,24 @@ document.addEventListener('DOMContentLoaded', () => {
         button.disabled = statusConfig.btnDisabled;
     };
 
+    // Load toggle state from storage
+    browser.storage.local
+        .get(['mockMode'])
+        .then((result: { mockMode?: boolean }) => {
+            mockToggle.checked = !!result.mockMode;
+            console.log('[PrivID] Mock verification mode:', mockToggle.checked);
+        });
+
+    // Listen for toggle changes
+    mockToggle.addEventListener('change', () => {
+        browser.storage.local.set({ mockMode: mockToggle.checked }).then(() => {
+            console.log(
+                '[PrivID] Mock verification mode set to:',
+                mockToggle.checked
+            );
+        });
+    });
+
     // On popup load, check storage for persisted verification state
     browser.storage.local
         .get(['verification'])
@@ -73,17 +97,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-    button.addEventListener('click', () => {
-        setStatus('verifying');
-
-        // Simulate a Holonym verification delay
+    /**
+     * Handles the verification process (mock or real).
+     * @param verificationFn - Function to generate the verification result.
+     */
+    function handleVerification(verificationFn: () => MockVerificationResult) {
         setTimeout(() => {
-            const mockResult = getMockVerificationResult();
-            // Store the mock result in browser storage to persist state
-            browser.storage.local.set({ verification: mockResult }).then(() => {
-                console.log('Verification result stored:', mockResult);
-                setStatus('verified');
-            });
+            const verificationResult = verificationFn();
+            browser.storage.local
+                .set({ verification: verificationResult })
+                .then(() => {
+                    setStatus('verified');
+                });
         }, 2000);
+    }
+
+    button.addEventListener('click', async () => {
+        setStatus('verifying');
+        const { mockMode } = await browser.storage.local.get(['mockMode']);
+
+        if (mockMode) {
+            handleVerification(getMockVerificationResult);
+        } else {
+            // TODO: Replace getMockVerificationResult with real verification function
+            handleVerification(getMockVerificationResult);
+        }
     });
 });

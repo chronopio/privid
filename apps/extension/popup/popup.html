@@ -20,12 +20,21 @@
             </div>
 
             <button id="verifyBtn">Verify with Holonym</button>
-            <button id="loginBtn" style="display: none; margin-top: 12px">
-                Login to Bluesky
-            </button>
-            <button id="postToBskyBtn" style="display: none; margin-top: 12px">
-                Post Verification to Bluesky
-            </button>
+            <div id="realButtons">
+                <button id="loginBtn" style="margin-top: 12px">
+                    Login to Bluesky
+                </button>
+                <button id="postToBskyBtn" style="margin-top: 12px">
+                    Post Verification to Bluesky
+                </button>
+            </div>
+            <div id="mockButtons" style="display: none">
+                <div class="button-group">
+                    <div class="button-divider"></div>
+                    <button id="atprotoBtn">Simulate ATProto Post</button>
+                </div>
+                <div id="atproto-status" class="atproto-status"></div>
+            </div>
             <label class="toggle-container">
                 <span class="toggle-label">Mock Verification Mode</span>
                 <input type="checkbox" id="mockToggle" />

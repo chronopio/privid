@@ -39,6 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
         'postToBskyBtn'
     ) as HTMLButtonElement;
     const atprotoBtn = document.getElementById('atprotoBtn');
+    const realButtons = document.getElementById(
+        'realButtons'
+    ) as HTMLDivElement;
+    const mockButtons = document.getElementById(
+        'mockButtons'
+    ) as HTMLDivElement;
 
     type VerificationState = 'unverified' | 'verifying' | 'verified';
     interface StatusConfig {
@@ -93,6 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper to show/hide login button based on mock toggle and update text for login/logout
     async function updateLoginBtnState(mockMode: boolean) {
+        if (realButtons && mockButtons) {
+            if (mockMode) {
+                realButtons.style.display = 'none';
+                mockButtons.style.display = 'block';
+            } else {
+                realButtons.style.display = 'block';
+                mockButtons.style.display = 'none';
+            }
+        }
         if (!loginBtn) return;
         if (mockMode) {
             loginBtn.style.display = 'none';
@@ -127,6 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
         .then((result: { mockMode?: boolean }) => {
             mockToggle.checked = !!result.mockMode;
             updateLoginBtnState(!!result.mockMode);
+            // Toggle button containers on load
+            if (realButtons && mockButtons) {
+                if (!!result.mockMode) {
+                    realButtons.style.display = 'none';
+                    mockButtons.style.display = 'block';
+                } else {
+                    realButtons.style.display = 'block';
+                    mockButtons.style.display = 'none';
+                }
+            }
             console.log('[PrivID] Mock verification mode:', mockToggle.checked);
         });
 
@@ -134,6 +159,16 @@ document.addEventListener('DOMContentLoaded', () => {
     mockToggle.addEventListener('change', () => {
         browser.storage.local.set({ mockMode: mockToggle.checked }).then(() => {
             updateLoginBtnState(mockToggle.checked);
+            // Toggle button containers on toggle
+            if (realButtons && mockButtons) {
+                if (mockToggle.checked) {
+                    realButtons.style.display = 'none';
+                    mockButtons.style.display = 'block';
+                } else {
+                    realButtons.style.display = 'block';
+                    mockButtons.style.display = 'none';
+                }
+            }
             // Hide modal if switching to mock mode
             if (mockToggle.checked && loginModal)
                 loginModal.style.display = 'none';

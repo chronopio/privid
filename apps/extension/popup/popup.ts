@@ -266,6 +266,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
+    // Utility function to check if a user is verified
+    function isUserVerified(
+        verification: MockVerificationResult | undefined
+    ): boolean {
+        return (
+            !!verification &&
+            typeof verification === 'object' &&
+            'verified' in verification &&
+            verification.verified
+        );
+    }
+
     function attachSimulateListener() {
         const atprotoBtn = document.getElementById(
             'atprotoBtn'
@@ -278,11 +290,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const { verification } = await browser.storage.local.get([
                     'verification'
                 ]);
-                const isVerified =
-                    verification &&
-                    typeof verification === 'object' &&
-                    'verified' in verification &&
-                    verification.verified;
+                const isVerified = isUserVerified(
+                    verification as MockVerificationResult | undefined
+                );
                 const { mockMode } = await browser.storage.local.get([
                     'mockMode'
                 ]);
@@ -322,21 +332,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Add event listener for the verification button
-    if (button) {
-        button.addEventListener('click', async () => {
-            setStatus('verifying');
-            setTimeout(async () => {
-                const verificationResult = getMockVerificationResult();
-                await browser.storage.local.set({
-                    verification: verificationResult
-                });
-                setStatus('verified');
-                attachSimulateListener();
-            }, 1500);
-        });
-    }
-
     // Enable/disable simulate button and show/hide error message
     async function updateAtprotoButtonState() {
         const atprotoBtn = document.getElementById(
@@ -348,11 +343,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { verification } = await browser.storage.local.get([
             'verification'
         ]);
-        const isVerified =
-            verification &&
-            typeof verification === 'object' &&
-            'verified' in verification &&
-            verification.verified;
+        const isVerified = isUserVerified(
+            verification as MockVerificationResult | undefined
+        );
         atprotoBtn.disabled = !isVerified;
         if (!isVerified) {
             atprotoStatusEl.innerHTML =
@@ -360,6 +353,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             atprotoStatusEl.innerHTML = '';
         }
+    }
+
+    if (button) {
+        button.addEventListener('click', async () => {
+            setStatus('verifying');
+            setTimeout(async () => {
+                const verificationResult = getMockVerificationResult();
+                await browser.storage.local.set({
+                    verification: verificationResult
+                });
+                setStatus('verified');
+                await updateAtprotoButtonState();
+                attachSimulateListener();
+            }, 1500);
+        });
     }
 
     await updateAtprotoButtonState();

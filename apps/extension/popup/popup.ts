@@ -4,6 +4,7 @@ import {
     MockVerificationResult
 } from './mocks/mockHolonym';
 import { icons } from './utils/icons';
+import { publishVerificationPost, getDummyProof } from './api/atproto';
 
 document.addEventListener('DOMContentLoaded', () => {
     const statusTextEl = document.getElementById(
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mockToggle = document.getElementById(
         'mockToggle'
     ) as HTMLInputElement;
+    const atprotoBtn = document.getElementById('atprotoBtn');
 
     type VerificationState = 'unverified' | 'verifying' | 'verified';
     interface StatusConfig {
@@ -123,4 +125,43 @@ document.addEventListener('DOMContentLoaded', () => {
             handleVerification(getMockVerificationResult);
         }
     });
+
+    if (atprotoBtn) {
+        atprotoBtn.addEventListener('click', handleAtprotoVerification);
+    }
 });
+
+async function handleAtprotoVerification() {
+    const atprotoStatusEl = document.getElementById(
+        'atproto-status'
+    ) as HTMLDivElement;
+    const { mockMode } = await browser.storage.local.get(['mockMode']);
+    if (!mockMode) {
+        atprotoStatusEl.textContent =
+            'ATProto simulation is only available in Mock Verification Mode.';
+        return;
+    }
+    const userHandle = 'user.bsky.social'; // Placeholder
+    const dummyProof = getDummyProof();
+    const result = await publishVerificationPost(userHandle, dummyProof);
+
+    console.log('[ATProto] Simulated post result:', result);
+
+    atprotoStatusEl.innerHTML = `
+      <div class="atproto-result-card">
+        <div class="atproto-result-header">
+          <span class="atproto-result-check">&#10003;</span>
+          <span class="atproto-result-title">Simulated ATProto Post Created</span>
+        </div>
+        <div class="atproto-result-field"><strong>Badge:</strong> <span class="atproto-result-badge">${
+            result.post.proof.badge
+        }</span></div>
+        <div class="atproto-result-field"><strong>Proof:</strong> <span class="atproto-result-proof">${
+            result.post.proof.proof
+        }</span></div>
+        <div class="atproto-result-timestamp"><strong>Timestamp:</strong> ${new Date(
+            result.post.proof.timestamp
+        ).toLocaleString()}</div>
+      </div>
+    `;
+}

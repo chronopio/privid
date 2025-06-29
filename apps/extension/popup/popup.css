@@ -374,3 +374,8 @@ button:disabled {
   margin-top: 10px;
   font-size: 0.95em;
 }
+
+.atproto-status-error {
+  color: #b00;
+  font-weight: 500;
+}

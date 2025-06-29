@@ -6,7 +6,7 @@ import {
 import { icons } from './utils/icons';
 import { publishVerificationPost, getDummyProof } from './api/atproto';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const statusTextEl = document.getElementById(
         'status-text'
     ) as HTMLSpanElement;
@@ -55,10 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnDisabled: boolean;
     }
 
-    /**
-     * Updates the UI to reflect a specific state (unverified, verifying, verified).
-     * @param {'unverified' | 'verifying' | 'verified'} state - The state to display.
-     */
     const setStatus = (state: VerificationState) => {
         statusTextEl.classList.remove('verified', 'unverified', 'verifying');
         statusIconEl.classList.remove('verified', 'unverified', 'verifying');
@@ -270,69 +266,102 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-    /**
-     * Handles the verification process (mock or real).
-     * @param verificationFn - Function to generate the verification result.
-     */
-    function handleVerification(verificationFn: () => MockVerificationResult) {
-        setTimeout(() => {
-            const verificationResult = verificationFn();
-            browser.storage.local
-                .set({ verification: verificationResult })
-                .then(() => {
-                    setStatus('verified');
-                });
-        }, 2000);
-    }
-
-    button.addEventListener('click', async () => {
-        setStatus('verifying');
-        const { mockMode } = await browser.storage.local.get(['mockMode']);
-
-        if (mockMode) {
-            handleVerification(getMockVerificationResult);
-        } else {
-            // TODO: Replace getMockVerificationResult with real verification function
-            handleVerification(getMockVerificationResult);
+    function attachSimulateListener() {
+        const atprotoBtn = document.getElementById(
+            'atprotoBtn'
+        ) as HTMLButtonElement;
+        if (atprotoBtn) {
+            atprotoBtn.onclick = async () => {
+                const atprotoStatusEl = document.getElementById(
+                    'atproto-status'
+                ) as HTMLDivElement;
+                const { verification } = await browser.storage.local.get([
+                    'verification'
+                ]);
+                const isVerified =
+                    verification &&
+                    typeof verification === 'object' &&
+                    'verified' in verification &&
+                    verification.verified;
+                const { mockMode } = await browser.storage.local.get([
+                    'mockMode'
+                ]);
+                if (!isVerified) {
+                    atprotoStatusEl.innerHTML =
+                        '<div class="atproto-status-error">You must be verified before you can simulate an ATProto post.</div>';
+                    return;
+                }
+                if (!mockMode) {
+                    atprotoStatusEl.innerHTML =
+                        '<div class="atproto-status-error">ATProto simulation is only available in Mock Verification Mode.</div>';
+                    return;
+                }
+                const userHandle = 'user.bsky.social'; // Placeholder
+                const result = await publishVerificationPost(
+                    userHandle,
+                    verification as MockVerificationResult
+                );
+                atprotoStatusEl.innerHTML = `
+                  <div class="atproto-result-card">
+                    <div class="atproto-result-header">
+                      <span class="atproto-result-check">&#10003;</span>
+                      <span class="atproto-result-title">Simulated ATProto Post Created</span>
+                    </div>
+                    <div class="atproto-result-field"><strong>Badge:</strong> <span class="atproto-result-badge">${
+                        result.post.proof.badge
+                    }</span></div>
+                    <div class="atproto-result-field"><strong>Proof:</strong> <span class="atproto-result-proof">${
+                        result.post.proof.proof
+                    }</span></div>
+                    <div class="atproto-result-timestamp"><strong>Timestamp:</strong> ${new Date(
+                        result.post.proof.timestamp
+                    ).toLocaleString()}</div>
+                  </div>
+                `;
+            };
         }
-    });
-
-    if (atprotoBtn) {
-        atprotoBtn.addEventListener('click', handleAtprotoVerification);
     }
+
+    // Add event listener for the verification button
+    if (button) {
+        button.addEventListener('click', async () => {
+            setStatus('verifying');
+            setTimeout(async () => {
+                const verificationResult = getMockVerificationResult();
+                await browser.storage.local.set({
+                    verification: verificationResult
+                });
+                setStatus('verified');
+                attachSimulateListener();
+            }, 1500);
+        });
+    }
+
+    // Enable/disable simulate button and show/hide error message
+    async function updateAtprotoButtonState() {
+        const atprotoBtn = document.getElementById(
+            'atprotoBtn'
+        ) as HTMLButtonElement;
+        const atprotoStatusEl = document.getElementById(
+            'atproto-status'
+        ) as HTMLDivElement;
+        const { verification } = await browser.storage.local.get([
+            'verification'
+        ]);
+        const isVerified =
+            verification &&
+            typeof verification === 'object' &&
+            'verified' in verification &&
+            verification.verified;
+        atprotoBtn.disabled = !isVerified;
+        if (!isVerified) {
+            atprotoStatusEl.innerHTML =
+                '<div class="atproto-status-error">You must be verified before you can simulate an ATProto post.</div>';
+        } else {
+            atprotoStatusEl.innerHTML = '';
+        }
+    }
+
+    await updateAtprotoButtonState();
+    attachSimulateListener();
 });
-
-async function handleAtprotoVerification() {
-    const atprotoStatusEl = document.getElementById(
-        'atproto-status'
-    ) as HTMLDivElement;
-    const { mockMode } = await browser.storage.local.get(['mockMode']);
-    if (!mockMode) {
-        atprotoStatusEl.textContent =
-            'ATProto simulation is only available in Mock Verification Mode.';
-        return;
-    }
-    const userHandle = 'user.bsky.social'; // Placeholder
-    const dummyProof = getDummyProof();
-    const result = await publishVerificationPost(userHandle, dummyProof);
-
-    console.log('[ATProto] Simulated post result:', result);
-
-    atprotoStatusEl.innerHTML = `
-      <div class="atproto-result-card">
-        <div class="atproto-result-header">
-          <span class="atproto-result-check">&#10003;</span>
-          <span class="atproto-result-title">Simulated ATProto Post Created</span>
-        </div>
-        <div class="atproto-result-field"><strong>Badge:</strong> <span class="atproto-result-badge">${
-            result.post.proof.badge
-        }</span></div>
-        <div class="atproto-result-field"><strong>Proof:</strong> <span class="atproto-result-proof">${
-            result.post.proof.proof
-        }</span></div>
-        <div class="atproto-result-timestamp"><strong>Timestamp:</strong> ${new Date(
-            result.post.proof.timestamp
-        ).toLocaleString()}</div>
-      </div>
-    `;
-}

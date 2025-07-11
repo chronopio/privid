@@ -20,11 +20,79 @@
             </div>
 
             <button id="verifyBtn">Verify with Holonym</button>
+            <button id="loginBtn" style="display: none; margin-top: 12px">
+                Login to Bluesky
+            </button>
+            <button id="postToBskyBtn" style="display: none; margin-top: 12px">
+                Post Verification to Bluesky
+            </button>
             <label class="toggle-container">
                 <span class="toggle-label">Mock Verification Mode</span>
                 <input type="checkbox" id="mockToggle" />
                 <span class="toggle-slider"></span>
             </label>
+        </div>
+        <!-- Login Modal -->
+        <div id="loginModal" class="modal" style="display: none">
+            <div class="modal-content">
+                <button
+                    id="closeModalBtn"
+                    class="modal-close"
+                    aria-label="Close"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                    >
+                        <line
+                            x1="5"
+                            y1="5"
+                            x2="15"
+                            y2="15"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+                        <line
+                            x1="15"
+                            y1="5"
+                            x2="5"
+                            y2="15"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </button>
+                <h2>Bluesky Login</h2>
+                <input
+                    id="identifierInput"
+                    type="text"
+                    placeholder="Identifier (handle)"
+                    autocomplete="username"
+                />
+                <input
+                    id="passwordInput"
+                    type="password"
+                    placeholder="App Password"
+                    autocomplete="current-password"
+                />
+                <button id="modalLoginBtn">Login</button>
+                <div
+                    id="loginError"
+                    style="color: #c00; margin-top: 8px; display: none"
+                ></div>
+                <div
+                    id="loginSuccess"
+                    style="color: #0a0; margin-top: 8px; display: none"
+                >
+                    Login successful!
+                </div>
+            </div>
         </div>
         <script src="../dist/popup.js" type="module"></script>
     </body>

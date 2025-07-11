@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     accessJwt,
                     did
                 );
-                alert('Verification post successfully posted to Bluesky!');
+                alert('Success!');
             } catch (err) {
                 // Show error in a user-friendly way
                 alert(

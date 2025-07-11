@@ -114,16 +114,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { bskySession } = await browser.storage.local.get([
             'bskySession'
         ]);
+        let isExpired = false;
+        if (
+            bskySession &&
+            typeof bskySession === 'object' &&
+            'expiresAt' in bskySession
+        ) {
+            isExpired =
+                typeof bskySession.expiresAt === 'number' &&
+                Date.now() > bskySession.expiresAt;
+        }
+        if (isExpired) {
+            await browser.storage.local.remove('bskySession');
+        }
         const hasJwt =
             bskySession &&
             typeof bskySession === 'object' &&
             'accessJwt' in bskySession &&
             typeof bskySession.accessJwt === 'string' &&
-            bskySession.accessJwt.length > 0;
+            bskySession.accessJwt.length > 0 &&
+            !isExpired;
+        // Check verification status
+        const { verification } = await browser.storage.local.get([
+            'verification'
+        ]);
+        let isVerified = false;
+        if (
+            verification &&
+            typeof verification === 'object' &&
+            'verified' in verification
+        ) {
+            isVerified = !!verification.verified;
+        }
         if (hasJwt) {
             loginBtn.textContent = 'Log out';
             loginBtn.dataset.loggedIn = 'true';
-            if (postToBskyBtn) postToBskyBtn.style.display = 'block';
+            if (postToBskyBtn) {
+                postToBskyBtn.style.display = 'block';
+                postToBskyBtn.disabled = !isVerified;
+            }
         } else {
             loginBtn.textContent = 'Login to Bluesky';
             loginBtn.dataset.loggedIn = 'false';
@@ -227,11 +256,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!response.ok || !data.accessJwt) {
                     throw new Error(data.message || 'Login failed');
                 }
-                // Store accessJwt and handle for future use
+                // Store accessJwt, handle, and did (if available)
                 await browser.storage.local.set({
                     bskySession: {
                         accessJwt: data.accessJwt,
                         handle: data.handle,
+                        did: data.did || '',
                         expiresAt: Date.now() + 60 * 60 * 1000 // 1 hour expiry
                     }
                 });
@@ -307,11 +337,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         '<div class="atproto-status-error">ATProto simulation is only available in Mock Verification Mode.</div>';
                     return;
                 }
-                const userHandle = 'user.bsky.social'; // Placeholder
-                const result = await publishVerificationPost(
-                    userHandle,
-                    verification as MockVerificationResult
-                );
+                // Simulate post (no real API call)
                 atprotoStatusEl.innerHTML = `
                   <div class="atproto-result-card">
                     <div class="atproto-result-header">
@@ -319,13 +345,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                       <span class="atproto-result-title">Simulated ATProto Post Created</span>
                     </div>
                     <div class="atproto-result-field"><strong>Badge:</strong> <span class="atproto-result-badge">${
-                        result.post.proof.badge
+                        (verification as MockVerificationResult).badge
                     }</span></div>
                     <div class="atproto-result-field"><strong>Proof:</strong> <span class="atproto-result-proof">${
-                        result.post.proof.proof
+                        (verification as MockVerificationResult).proof
                     }</span></div>
                     <div class="atproto-result-timestamp"><strong>Timestamp:</strong> ${new Date(
-                        result.post.proof.timestamp
+                        (verification as MockVerificationResult).timestamp
                     ).toLocaleString()}</div>
                   </div>
                 `;
@@ -367,6 +393,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setStatus('verified');
                 await updateAtprotoButtonState();
                 attachSimulateListener();
+                await updateLoginBtnState(false); // update postToBskyBtn state after verification
             }, 1500);
         });
     }
@@ -378,10 +405,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const { verification } = await browser.storage.local.get([
                     'verification'
                 ]);
-                const userHandle = 'user.bsky.social'; // Placeholder
-                await publishVerificationPost(
-                    userHandle,
-                    verification as MockVerificationResult
+                const { bskySession } = await browser.storage.local.get([
+                    'bskySession'
+                ]);
+                let accessJwt = '',
+                    handle = '',
+                    did = '';
+                if (bskySession && typeof bskySession === 'object') {
+                    if (
+                        'accessJwt' in bskySession &&
+                        typeof bskySession.accessJwt === 'string'
+                    ) {
+                        accessJwt = bskySession.accessJwt;
+                    }
+                    if (
+                        'handle' in bskySession &&
+                        typeof bskySession.handle === 'string'
+                    ) {
+                        handle = bskySession.handle;
+                    }
+                    if (
+                        'did' in bskySession &&
+                        typeof bskySession.did === 'string'
+                    ) {
+                        did = bskySession.did;
+                    }
+                }
+                if (!accessJwt || !handle || !did) {
+                    alert('You must be logged in to Bluesky to post.');
+                    return;
+                }
+                const result = await publishVerificationPost(
+                    handle,
+                    verification as MockVerificationResult,
+                    accessJwt,
+                    did
                 );
                 alert('Verification post successfully posted to Bluesky!');
             } catch (err) {

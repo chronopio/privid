@@ -16,6 +16,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const mockToggle = document.getElementById(
         'mockToggle'
     ) as HTMLInputElement;
+    const loginBtn = document.getElementById('loginBtn') as HTMLButtonElement;
+    const loginModal = document.getElementById('loginModal') as HTMLDivElement;
+    const modalLoginBtn = document.getElementById(
+        'modalLoginBtn'
+    ) as HTMLButtonElement;
+    const closeModalBtn = document.getElementById(
+        'closeModalBtn'
+    ) as HTMLButtonElement;
+    const identifierInput = document.getElementById(
+        'identifierInput'
+    ) as HTMLInputElement;
+    const passwordInput = document.getElementById(
+        'passwordInput'
+    ) as HTMLInputElement;
+    const loginError = document.getElementById('loginError') as HTMLDivElement;
+    const loginSuccess = document.getElementById(
+        'loginSuccess'
+    ) as HTMLDivElement;
+    const postToBskyBtn = document.getElementById(
+        'postToBskyBtn'
+    ) as HTMLButtonElement;
 
     type VerificationState = 'unverified' | 'verifying' | 'verified';
     interface StatusConfig {
@@ -68,23 +89,138 @@ document.addEventListener('DOMContentLoaded', () => {
         button.disabled = statusConfig.btnDisabled;
     };
 
+    // Helper to show/hide login button based on mock toggle and update text for login/logout
+    async function updateLoginBtnState(mockMode: boolean) {
+        if (!loginBtn) return;
+        if (mockMode) {
+            loginBtn.style.display = 'none';
+            if (postToBskyBtn) postToBskyBtn.style.display = 'none';
+            return;
+        }
+        // Check for Bluesky session
+        const { bskySession } = await browser.storage.local.get([
+            'bskySession'
+        ]);
+        const hasJwt =
+            bskySession &&
+            typeof bskySession === 'object' &&
+            'accessJwt' in bskySession &&
+            typeof bskySession.accessJwt === 'string' &&
+            bskySession.accessJwt.length > 0;
+        if (hasJwt) {
+            loginBtn.textContent = 'Log out';
+            loginBtn.dataset.loggedIn = 'true';
+            if (postToBskyBtn) postToBskyBtn.style.display = 'block';
+        } else {
+            loginBtn.textContent = 'Login to Bluesky';
+            loginBtn.dataset.loggedIn = 'false';
+            if (postToBskyBtn) postToBskyBtn.style.display = 'none';
+        }
+        loginBtn.style.display = 'block';
+    }
+
     // Load toggle state from storage
     browser.storage.local
         .get(['mockMode'])
         .then((result: { mockMode?: boolean }) => {
             mockToggle.checked = !!result.mockMode;
+            updateLoginBtnState(!!result.mockMode);
             console.log('[PrivID] Mock verification mode:', mockToggle.checked);
         });
 
     // Listen for toggle changes
     mockToggle.addEventListener('change', () => {
         browser.storage.local.set({ mockMode: mockToggle.checked }).then(() => {
+            updateLoginBtnState(mockToggle.checked);
+            // Hide modal if switching to mock mode
+            if (mockToggle.checked && loginModal)
+                loginModal.style.display = 'none';
             console.log(
                 '[PrivID] Mock verification mode set to:',
                 mockToggle.checked
             );
         });
     });
+
+    // Login/Logout button logic
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async () => {
+            const loggedIn = loginBtn.dataset.loggedIn === 'true';
+            if (loggedIn) {
+                // Log out
+                await browser.storage.local.remove('bskySession');
+                loginBtn.textContent = 'Login to Bluesky';
+                loginBtn.dataset.loggedIn = 'false';
+                if (postToBskyBtn) postToBskyBtn.style.display = 'none';
+            } else {
+                // Open login modal
+                if (loginModal) {
+                    loginModal.style.display = 'flex';
+                    identifierInput.value = '';
+                    passwordInput.value = '';
+                    loginError.style.display = 'none';
+                    if (loginSuccess) loginSuccess.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // Modal close button
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            if (loginModal) loginModal.style.display = 'none';
+        });
+    }
+
+    // Modal login button (Bluesky authentication)
+    if (modalLoginBtn) {
+        modalLoginBtn.addEventListener('click', async () => {
+            const identifier = identifierInput.value.trim();
+            const password = passwordInput.value;
+            loginError.style.display = 'none';
+            modalLoginBtn.disabled = true;
+            modalLoginBtn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch(
+                    'https://bsky.social/xrpc/com.atproto.server.createSession',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ identifier, password })
+                    }
+                );
+                const data = await response.json();
+                if (!response.ok || !data.accessJwt) {
+                    throw new Error(data.message || 'Login failed');
+                }
+                // Store accessJwt and handle for future use
+                await browser.storage.local.set({
+                    bskySession: {
+                        accessJwt: data.accessJwt,
+                        handle: data.handle
+                    }
+                });
+                loginError.style.display = 'none';
+                if (loginSuccess) {
+                    loginSuccess.style.display = 'block';
+                }
+                updateLoginBtnState(false);
+                // Auto-close modal after 1 second
+                setTimeout(() => {
+                    if (loginModal) loginModal.style.display = 'none';
+                    if (loginSuccess) loginSuccess.style.display = 'none';
+                }, 1000);
+            } catch (err: any) {
+                if (loginSuccess) loginSuccess.style.display = 'none';
+                loginError.textContent = err.message || 'Login failed';
+                loginError.style.display = 'block';
+            } finally {
+                modalLoginBtn.disabled = false;
+                modalLoginBtn.textContent = 'Login';
+            }
+        });
+    }
 
     // On popup load, check storage for persisted verification state
     browser.storage.local

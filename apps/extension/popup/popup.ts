@@ -231,7 +231,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 await browser.storage.local.set({
                     bskySession: {
                         accessJwt: data.accessJwt,
-                        handle: data.handle
+                        handle: data.handle,
+                        expiresAt: Date.now() + 60 * 60 * 1000 // 1 hour expiry
                     }
                 });
                 loginError.style.display = 'none';
@@ -367,6 +368,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                 await updateAtprotoButtonState();
                 attachSimulateListener();
             }, 1500);
+        });
+    }
+
+    if (postToBskyBtn) {
+        postToBskyBtn.addEventListener('click', async () => {
+            postToBskyBtn.disabled = true;
+            try {
+                const { verification } = await browser.storage.local.get([
+                    'verification'
+                ]);
+                const userHandle = 'user.bsky.social'; // Placeholder
+                await publishVerificationPost(
+                    userHandle,
+                    verification as MockVerificationResult
+                );
+                alert('Verification post successfully posted to Bluesky!');
+            } catch (err) {
+                // Show error in a user-friendly way
+                alert(
+                    'Failed to post verification to Bluesky. Please try again.'
+                );
+            } finally {
+                postToBskyBtn.disabled = false;
+            }
         });
     }
 

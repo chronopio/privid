@@ -15,5 +15,14 @@
       "js": ["dist/content/injectBadge.js"],
       "css": ["dist/content/injectBadge.css"]
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "popup/holonym/holonym-callback.html",
+        "popup/holonym/holonym-callback.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ]
 }

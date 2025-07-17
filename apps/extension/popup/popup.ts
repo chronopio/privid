@@ -384,17 +384,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (button) {
         button.addEventListener('click', async () => {
-            setStatus('verifying');
-            setTimeout(async () => {
-                const verificationResult = getMockVerificationResult();
-                await browser.storage.local.set({
-                    verification: verificationResult
-                });
-                setStatus('verified');
-                await updateAtprotoButtonState();
-                attachSimulateListener();
-                await updateLoginBtnState(false); // update postToBskyBtn state after verification
-            }, 1500);
+            const { mockMode } = await browser.storage.local.get(['mockMode']);
+            if (mockMode) {
+                setStatus('verifying');
+                setTimeout(async () => {
+                    const verificationResult = getMockVerificationResult();
+                    await browser.storage.local.set({
+                        verification: verificationResult
+                    });
+                    setStatus('verified');
+                    await updateAtprotoButtonState();
+                    attachSimulateListener();
+                    await updateLoginBtnState(false); // update postToBskyBtn state after verification
+                }, 1500);
+            } else {
+                // Real Holonym flow: redirect to Holonym proof page
+                const callbackUrl = browser.runtime.getURL(
+                    'popup/holonym/holonym-callback.html'
+                );
+                const holonymUrl = `https://app.holonym.id/prove/off-chain/uniqueness?callback=${encodeURIComponent(
+                    callbackUrl
+                )}`;
+                window.open(holonymUrl, '_blank');
+            }
         });
     }
 
